@@ -4,7 +4,7 @@
 
 
 window.onload = function () {
-    assert(true, 'Loaded')
+    assert(true, 'Loaded');
 
     var ninja = {
         shout: function () {
@@ -14,7 +14,7 @@ window.onload = function () {
             return n > 1 ? signal(n - 1) + '-chirp' : 'chirp';
         }
 
-    }
+    };
     ninja.shout();
 
     setTimeout(function () {
@@ -29,7 +29,7 @@ window.onload = function () {
         if (text.length <= 1) return true;
         if (text.charAt(0) === text.charAt(text.length - 1))
             return isPalindrome(text.substr(1, text.length - 2));
-    };
+    }
     assert(isPalindrome(palindrome), palindrome + ' is palindrome');
     assert(isPalindrome(undefined), undefined + ' is palindrome');
 
@@ -62,7 +62,7 @@ window.onload = function () {
         chirpUseCalee: function (n) {
             return n > 1 ? arguments.callee(n - 1) + '-chirp' : 'chirp';
         }
-    }
+    };
     assert(samurai.chirpUseCalee(3) === 'chirp-chirp-chirp', 'Samurai can chirp use callee :)');
 
 
