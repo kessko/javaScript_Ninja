@@ -48,6 +48,7 @@ window.onload = function () {
         }
         return isPrime.answer[value] = prime;
     }
+
     assert(isPrime(5), '5 is prime number');
     assert(isPrime.answer[5], 'now we use cached value');
 
@@ -86,8 +87,103 @@ window.onload = function () {
         return Math.max.apply(Math, array);
     };
 
-    assert(smallest([1,2,3,4,5]) === 1, '1 was the smallest number oin array');
-    assert(largest([99,44,1,8]) === 99, '99 is the biggest number in the array');
+    assert(smallest([1, 2, 3, 4, 5]) === 1, '1 was the smallest number oin array');
+    assert(largest([99, 44, 1, 8]) === 99, '99 is the biggest number in the array');
 
+    function merge(root) {
+        for (var i = 0; i < arguments.length; i++) {
+            for (var key in arguments[i]) {
+                if (arguments[i].hasOwnProperty(key))
+                    root[key] = arguments[i][key];
+
+            }
+        }
+        return root;
+    }
+
+    var merged = merge({first: 'first element'}, {second: 'second element'});
+    assert(merged.first === 'first element', 'first merged element');
+    assert(merged.second === 'second element', 'second merged element');
+
+    function multupleFirstWithMax(first) {
+        return first * Math.max.apply(Math, Array.prototype.slice.call(arguments, 1));
+    }
+
+    var result = multupleFirstWithMax(1, 2, 3, 4, 5);
+    assert(result === 5, 'yiiiiiiii');
+
+    function makeNinja(name) {
+    }
+
+    function makeSamurai(name, rank) {
+    }
+
+    assert(makeNinja.length === 1, 'make ninja have 1 argument');
+    assert(makeSamurai.length === 2, 'make smurai have 2 arguments');
+
+
+    // this code make me seek
+
+    function addMethod(object, name, fn) {
+        var old = object[name];
+
+        object[name] = function () {
+            if (fn.length === arguments.length) {
+                return fn.apply(this, arguments);
+            }
+            else if (typeof  old == 'function') {
+                return old.apply(this, arguments);
+            }
+        }
+    }
+
+    var smartGay = {};
+    addMethod(smartGay, 'whatever', function (a, b) {
+        console.log(a, '  ', b)
+    });
+
+    addMethod(smartGay, 'whatever', function (a) {
+        console.log(a)
+    });
+
+    addMethod(smartGay, 'whatever', function () {
+        console.log('empty')
+    });
+
+
+    smartGay.whatever('ff', 'ww');
+    smartGay.whatever();
+    smartGay.whatever('ff');
+
+
+    var proNinjas = {
+        names: ['Alex Shveds', 'Viktor Buza', 'Nikitin Boris', 'Alex Mahouni']
+    };
+
+
+    addMethod(proNinjas, 'find', function () {
+        return this.names;
+    });
+    addMethod(proNinjas, 'find', function (firsName) {
+        var result = [];
+        for (var i = 0; i < this.names.length; i++) {
+            if (this.names[i].indexOf(firsName) === 0)
+                result.push(this.names[i]);
+        }
+        return result;
+    });
+    addMethod(proNinjas, 'find', function (firstName, lastName) {
+        var result = [];
+        for (var i = 0; i < this.names.length; i++) {
+            if (this.names[i] === (firstName + ' ' + lastName))
+                result.push(this.names[i]);
+        }
+        return result;
+    });
+
+
+    assert(proNinjas.find('Alex').length === 2, 'we found Alex Shveds and Alex Mahouni');
+    assert(proNinjas.find('Viktor', 'Buza').toString() === 'Viktor Buza', 'we found Viktor Buza');
+    assert(proNinjas.find().length === 4, 'all result contains 4 element');
 
 };
