@@ -137,23 +137,23 @@ window.onload = function () {
         }
     }
 
-    var smartGay = {};
-    addMethod(smartGay, 'whatever', function (a, b) {
+    var smartGuy = {};
+    addMethod(smartGuy, 'whatever', function (a, b) {
         console.log(a, '  ', b)
     });
 
-    addMethod(smartGay, 'whatever', function (a) {
+    addMethod(smartGuy, 'whatever', function (a) {
         console.log(a)
     });
 
-    addMethod(smartGay, 'whatever', function () {
+    addMethod(smartGuy, 'whatever', function () {
         console.log('empty')
     });
 
 
-    smartGay.whatever('ff', 'ww');
-    smartGay.whatever();
-    smartGay.whatever('ff');
+    smartGuy.whatever('ff', 'ww');
+    smartGuy.whatever();
+    smartGuy.whatever('ff');
 
 
     var proNinjas = {
@@ -185,5 +185,14 @@ window.onload = function () {
     assert(proNinjas.find('Alex').length === 2, 'we found Alex Shveds and Alex Mahouni');
     assert(proNinjas.find('Viktor', 'Buza').toString() === 'Viktor Buza', 'we found Viktor Buza');
     assert(proNinjas.find().length === 4, 'all result contains 4 element');
+
+    var justFunction = function (){};
+    assert( typeof justFunction == 'function', 'function has type - function ^)');
+
+    function isFunction(fn){
+     return Object.prototype.toString.call(fn) == '[object Function]';
+    }
+
+    assert(isFunction(justFunction), 'this is a function');
 
 };
