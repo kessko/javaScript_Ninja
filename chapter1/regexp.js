@@ -47,4 +47,67 @@ window.onload = function () {
     })
     ('first part');
 
+    (function (nameOfPart) {
+        assert(0, nameOfPart);
+        assert(0, '');
+
+        $(document.body).append('<div id="opacity" style="filter: alpha(opacity=50); opacity: 0.5;"></div>');
+        function getElementOpacity(elem) {
+            var filter = elem.style.filter;
+            return filter ? filter.indexOf("opacity") >= 0 ? (parseFloat(filter.match(/opacity=([^)]+)/)[1]) / 100 + "") : "" : elem.style.opacity;
+
+        }
+
+        assert(getElementOpacity(document.getElementById('opacity')) === "0.5", 'element has 0.5 opacity');
+
+        var html = "<div class='test'><b>Hello</b><i>World!</i></div>";
+
+        var result = html.match(/<(\/?)(\w+)([^>]*?)>/);
+
+        assert(result[0] === "<div class='test'>", "found first teg");
+        assert(result[1] === "", "missing slash");
+        assert(result[2] === "div", "tag name");
+        assert(result[3] === " class='test'", "attribute");
+
+        result = html.match(/<(\/?)(\w+)([^>]*?)>/g);
+
+        assert(result[0] === "<div class='test'>", "found first teg");
+        assert(result[1] === "<b>", "found b tag");
+        assert(result[2] === "</b>", "found close b tag");
+        assert(result[3] === "<i>", "found open i tag");
+        assert(result[4] === "</i>", "found close i tag");
+        assert(result[5] === "</div>", "found close div tag");
+
+        var tag = /<(\/?)(\w+)([^>]*?)>/g;
+        var match, num = 0;
+        while ((match = tag.exec(html)) != null) {
+            assert(match.length === 4, 'we have 4 matches');
+            num++;
+        }
+
+        assert(num === 6, "we have 3 opening and 3 close tags");
+
+        html = "<b class='some-calss' title='test-title'>Hello</b><i>World!</i>";
+        var pattern = /<(\w+)([^>]*?)>(.*?)<\/\1>/g;
+
+        result = pattern.exec(html);
+        assert(result[0] === "<b class='some-calss' title='test-title'>Hello</b>", 'tab name');
+        assert(result[1] === 'b', 'tab name');
+        assert(result[2] === " class='some-calss' title='test-title'", 'atrr');
+        assert(result[3] === 'Hello', 'tag content');
+
+        result = pattern.exec(html);
+        assert(result[0] === "<i>World!</i>", 'tab name');
+        assert(result[1] === 'i', 'tab name');
+        assert(result[2] === '', 'attr');
+        assert(result[3] === 'World!', 'content');
+
+        assert(0,'next step');
+
+        assert('fontFamily'.replace(/([A-Z])/g,'-$1').toLowerCase() === "font-family", 'convert camelcase to dashed notation');
+
+
+    })
+    ('second part');
+
 };
