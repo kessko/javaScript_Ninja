@@ -102,9 +102,45 @@ window.onload = function () {
         assert(result[2] === '', 'attr');
         assert(result[3] === 'World!', 'content');
 
-        assert(0,'next step');
+        assert(0, 'next step');
 
-        assert('fontFamily'.replace(/([A-Z])/g,'-$1').toLowerCase() === "font-family", 'convert camelcase to dashed notation');
+        assert('fontFamily'.replace(/([A-Z])/g, '-$1').toLowerCase() === "font-family", 'convert camelcase to dashed notation');
+        pattern = /((?:ninja-)+)sword/;
+
+        assert("ninja-sword and ninja-sword".match(pattern)[1] === "ninja-", "capture only need word");
+
+        function upper(all, letter) {
+            console.log(all);
+            return letter.toUpperCase();
+        }
+
+        assert("bold-bottom-width".replace(/-(\w)/g, upper) == "boldBottomWidth", "Convert to camel Case :)");
+
+
+        function compress(source) {
+            var result = [];
+            var keys = {};
+            var pattern = /([^=&]+)=([^&]+)/g;
+
+            function combiner(all, key, value) {
+                keys[key] = (keys[key] ? keys[key] + "," : "") + value;
+                return "";
+            }
+
+            source.replace(pattern, combiner);
+
+            for (var key in keys) {
+                result.push(key + "=" + keys[key]);
+            }
+            return result.join('&');
+
+        }
+
+        var textData = "foo=1&foo=2&boo=3&foo=4&boo=7&alex=9";
+        var compressedFormat  = compress(textData);
+        assert(0, "compress this -> foo=1&foo=2&boo=3&foo=4&boo=7&alex=9");
+        assert(0, "to this -> foo=1,2,4&boo=3,7&alex=9");
+        assert(compressedFormat == "foo=1,2,4&boo=3,7&alex=9", "We compress data!");
 
 
     })
