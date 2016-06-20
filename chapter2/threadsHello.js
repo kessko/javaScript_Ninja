@@ -24,6 +24,7 @@ window.onload = function () {
         // tr.appendChild(td);
         // tbody.appendChild(tr);
 
+        //change count if you want
         var rowCount = 200000;
         var iteration = 0;
         var devidedInto = 1000;
