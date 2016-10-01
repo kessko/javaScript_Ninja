@@ -37,7 +37,7 @@ window.onload = function () {
         assert(true, '.');
 
 
-        var maxCount = 1000000, value, elapsed, start, n;
+        var maxCount = 100, value, elapsed, start, n;
         var ninja = {foo: "test"};
         start = new Date().getTime();
         for (n = 0; n < maxCount; n++) {
@@ -78,4 +78,43 @@ window.onload = function () {
 
 
     })("operator with");
-}
+
+    (function (chapterName){
+        assert(1,'.');
+        assert(1,'.');
+        assert(1,'.');
+        assert(1,'.');
+        assert(0, chapterName);
+        assert(0,'.');
+        assert(0,'.');
+        assert(0,'.');
+
+        (function(w){
+            var cache ={};
+            w.tmpl = function templ(str, data){
+                var fn = cache[str] = cache[str] || new Function('obj',"var  p = [], print = function(){p.push.apply(p, arguments);};" +
+                    "with(obj) {p.push('"+
+                    str.replace(/[\r\t\n]/g," ").
+                        split('<%').join('\t')
+                        .replace(/((^|%>)[^t]*)'/g,"$1\r")
+                        .replace(/\t=(.*?)%>/g,"',$1,'")
+                        .split("\t").join("');")
+                        .split("%>").join("p.push('")
+                        .split("\r").join("\\'")
+                    +"');}return p.join('');");
+
+                return data ? fn(data) : fn;
+            };
+        })(window);
+        assert(tmpl("Hello, <%= name %>!",{name: "world"}) === "Hello, world!", 'template parsing works well!') ;
+        var cachedStr = tmpl("Hello, <%= name %>!");
+        assert(cachedStr({name : 'Alejandro'}) === 'Hello, Alejandro!', "pre compile template usage");
+
+
+
+
+
+
+    })("with and templates");
+
+};
