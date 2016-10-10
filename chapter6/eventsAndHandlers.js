@@ -85,24 +85,140 @@ window.onload = function () {
                 };
 
                 event.isImmediatePropagationStopped = returnFalse();
-                if(event.clientX != null){
+                if (event.clientX != null) {
                     var doc = document.documentElement, body = document.body;
-                    event.pageX = event.clientX + (doc && doc.scrollLeft  || body.scrollLeft || 0 )
-                    - (doc && doc.clientLeft || body &&  body.clientLeft || 0);
+                    event.pageX = event.clientX + (doc && doc.scrollLeft || body.scrollLeft || 0 )
+                        - (doc && doc.clientLeft || body && body.clientLeft || 0);
 
                     event.pageY = event.clientY + (doc && doc.scrollTop || body && body.scrollTop || 0)
-                    - (doc && doc.clientTop || body && body.clientTop || 0);
+                        - (doc && doc.clientTop || body && body.clientTop || 0);
                 }
                 event.which = event.charCode || event.keyCode;
 
-                if(event.button != null){
+                if (event.button != null) {
                     event.button = ( event.button & 1 ? 0 : (event.button & 4 ? 1 : (event.button & 2 ? 2 : 0)));
                 }
 
             }
             return event;
 
+        };
+
+        (function () {
+            var guidCounter = 1, expando = 'data' + (new Date).getTime();
+            var self = window;
+            var cache = {};
+            self.getData = function (elem) {
+                var guid = elem[expando];
+                if (!guid) {
+                    guid = elem[expando] = guidCounter++;
+                    cache[guid] = {};
+                }
+                return cache[guid];
+            };
+            self.removeData = function (elem) {
+                var guid = elem[expando];
+                if (!guid) return;
+                delete cache[guid];
+                try {
+                    delete elem[expando];
+                }
+                catch (e) {
+                    if (elem.removeAttribute)
+                        elem.removeAttribute(guid);
+                }
+            }
+        })();
+
+        div = document.createElement('div');
+        div.innerText = 'Waka!';
+        div.title = "Ninja power!";
+        anotherDiv = document.createElement('div');
+        anotherDiv.innerText = 'Maka for!';
+        anotherDiv.title = "Secret information here";
+        document.body.appendChild(div);
+        document.body.appendChild(anotherDiv);
+
+        var firsData = self.getData(div);
+        var secondData = self.getData(anotherDiv);
+
+        firsData.ninja = div.title;
+        firsData.wow = 1111;
+        secondData.ninja = anotherDiv.title;
+        assert(firsData.ninja === div.title , firsData.ninja);
+        assert(secondData.ninja === anotherDiv.title, secondData.ninja);
+
+        self.removeData(div);
+        self.removeData(anotherDiv);
+
+        assert(self.getData(div).ninja === div.title , 'data was removed');
+        assert(self.getData(anotherDiv).ninja === anotherDiv.title, 'Data was successfully removed');
+
+        (function () {
+            var nextGuid =1;
+            self.addEvent = function (elem, type, fn) {
+                var data = self.getData(elem);
+                if(!data.handlers) data.handlers = {};
+                if(!data.handlers[type]) data.handlers[type] = [];
+                if(!fn.guid) fn.guid = nextGuid++;
+                data.handlers[type].push(fn);
+                if(!data.dispatcher){
+                    data.disabled = false;
+                    data.dispather = function (event) {
+                        if(data.disabled) return;
+                        event = fixEvent(event);
+                        var handlers = data.handlers[event.type];
+                        if(handlers){
+                            for(var i = 0; i < handlers.length; i++){
+                                handlers[i].call(elem, event);
+                            }
+                        }
+                    };
+                }
+                if(data.handlers[type].length === 1){
+                    if(document.addEventListener){
+                        elem.addEventListener(type, data.dispather, false);
+                    }
+                    else if(document.attachEvent){
+                        elem.attachEvent('on'+type, data.dispather);
+                    }
+                }
+            };
+        })();
+
+        self.addEvent(div, 'click', function (event) {
+           if(this.style){
+               this.style.backgroundColor = this.style.backgroundColor === 'green' ? '' : 'green';
+           }
+        });
+
+        function tidyUp(elem, type){
+            function isEmpty(object){
+                for(var p in object){
+                    return false;
+                }
+                return true;
+            }
+            var data = self.getData(elem);
+            if(data.handlers[type].length === 0){
+                delete data.handlers[type];
+                if(document.removeEventListener){
+                    elem.removeEventListener(type, data.dispather, false);
+                }
+                else if(document.detachEvent){
+                    elem.detachEvent('on'+type, data.dispather);
+                }
+            }
+            if(isEmpty(data.handlers)){
+                delete data.handlers;
+                delete data.dispather;
+            }
+            if(isEmpty(data)){
+                self.removeData(elem);
+            }
+
         }
+
 
 
     })('events');
