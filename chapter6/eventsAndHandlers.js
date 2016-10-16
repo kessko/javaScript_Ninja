@@ -67,20 +67,20 @@ window.onload = function () {
 
                 event.preventDefault = function () {
                     event.returnValue = false;
-                    event.isDefaultPrevented = returnTrue();
+                    event.isDefaultPrevented = returnTrue;
                 };
 
-                event.isDefaultPrevented = returnFalse();
+                event.isDefaultPrevented = returnFalse;
 
 
                 event.stopPropagation = function () {
                     event.cancelBubble = true;
-                    event.isPropagationStopped = returnTrue();
+                    event.isPropagationStopped = returnTrue;
                 };
-                event.isPropagationStopped = returnFalse();
+                event.isPropagationStopped = returnFalse;
 
                 event.stopImmediatePropagation = function () {
-                    this.isImmediatePropagationStopped = returnTrue();
+                    this.isImmediatePropagationStopped = returnTrue;
                     this.stopPropagation();
                 };
 
@@ -145,80 +145,188 @@ window.onload = function () {
         firsData.ninja = div.title;
         firsData.wow = 1111;
         secondData.ninja = anotherDiv.title;
-        assert(firsData.ninja === div.title , firsData.ninja);
+        assert(firsData.ninja === div.title, firsData.ninja);
         assert(secondData.ninja === anotherDiv.title, secondData.ninja);
 
         self.removeData(div);
         self.removeData(anotherDiv);
 
-        assert(self.getData(div).ninja === div.title , 'data was removed');
+        assert(self.getData(div).ninja === div.title, 'data was removed');
         assert(self.getData(anotherDiv).ninja === anotherDiv.title, 'Data was successfully removed');
 
         (function () {
-            var nextGuid =1;
+            var nextGuid = 1;
             self.addEvent = function (elem, type, fn) {
                 var data = self.getData(elem);
-                if(!data.handlers) data.handlers = {};
-                if(!data.handlers[type]) data.handlers[type] = [];
-                if(!fn.guid) fn.guid = nextGuid++;
+                if (!data.handlers) data.handlers = {};
+                if (!data.handlers[type]) data.handlers[type] = [];
+                if (!fn.guid) fn.guid = nextGuid++;
                 data.handlers[type].push(fn);
-                if(!data.dispatcher){
+                if (!data.dispatcher) {
                     data.disabled = false;
                     data.dispather = function (event) {
-                        if(data.disabled) return;
+                        if (data.disabled) return;
                         event = fixEvent(event);
                         var handlers = data.handlers[event.type];
-                        if(handlers){
-                            for(var i = 0; i < handlers.length; i++){
+                        if (handlers) {
+                            for (var i = 0; i < handlers.length; i++) {
                                 handlers[i].call(elem, event);
                             }
                         }
                     };
                 }
-                if(data.handlers[type].length === 1){
-                    if(document.addEventListener){
+                if (data.handlers[type].length === 1) {
+                    if (document.addEventListener) {
                         elem.addEventListener(type, data.dispather, false);
                     }
-                    else if(document.attachEvent){
-                        elem.attachEvent('on'+type, data.dispather);
+                    else if (document.attachEvent) {
+                        elem.attachEvent('on' + type, data.dispather);
                     }
                 }
             };
         })();
 
         self.addEvent(div, 'click', function (event) {
-           if(this.style){
-               this.style.backgroundColor = this.style.backgroundColor === 'green' ? '' : 'green';
-           }
+            if (this.style) {
+                this.style.backgroundColor = this.style.backgroundColor === 'green' ? '' : 'green';
+            }
         });
 
-        function tidyUp(elem, type){
-            function isEmpty(object){
-                for(var p in object){
+        function tidyUp(elem, type) {
+            function isEmpty(object) {
+                for (var p in object) {
                     return false;
                 }
                 return true;
             }
+
             var data = self.getData(elem);
-            if(data.handlers[type].length === 0){
+            if (data.handlers[type].length === 0) {
                 delete data.handlers[type];
-                if(document.removeEventListener){
+                if (document.removeEventListener) {
                     elem.removeEventListener(type, data.dispather, false);
                 }
-                else if(document.detachEvent){
-                    elem.detachEvent('on'+type, data.dispather);
+                else if (document.detachEvent) {
+                    elem.detachEvent('on' + type, data.dispather);
                 }
             }
-            if(isEmpty(data.handlers)){
+            if (isEmpty(data.handlers)) {
                 delete data.handlers;
                 delete data.dispather;
             }
-            if(isEmpty(data)){
+            if (isEmpty(data)) {
                 self.removeData(elem);
             }
 
         }
 
+        (function () {
+            self.removeEvent = function (elem, type, fn) {
+                function isEmpty(object) {
+                    for (var p in object) {
+                        return false;
+                    }
+                    return true;
+                }
+
+                var data = getData(elem);
+                if (!data || isEmpty(data)) return;
+                var removeType = function (t) {
+                    data.handlers[t] = [];
+                    tidyUp(elem, t);
+                };
+                if (!type) {
+                    for (var t in data.handlers) {
+                        removeType(t);
+                    }
+                    return;
+                }
+                var handlers = data.handlers[type];
+                if (!handlers) return;
+                if (!fn) {
+                    removeType(type);
+                    return;
+                }
+                if (fn.guid) {
+                    for (var i = 0; i < handlers.length; i++) {
+                        if (handlers[i].guid === fn.guid) {
+                            handlers.splice(i--, 1);
+                        }
+                    }
+                }
+                tidyUp(elem, type);
+            }
+        })();
+        var counter = 0;
+        self.addEvent(anotherDiv, 'mouseover', function moFn(event) {
+            event.target.innerText = (event.target.innerText + '  ' + counter++);
+            if (counter > 9) {
+                self.removeEvent(this, 'mouseover', moFn);
+            }
+        });
+        self.addEvent(anotherDiv, 'click', function (event) {
+            if (this.style)
+                this.style.marginLeft = (counter++ * 10) + 'px';
+        });
+
+        self.triggerEvent = function (elem, event) {
+            var data = getData(elem);
+            var parent = elem.parentNode || elem.ownerDocument;
+
+            if (typeof  event === "string") {
+                event = {type: event, target: elem};
+            }
+            event = fixEvent(event);
+            if (data.dispather) {
+                data.dispather.call(elem, event);
+            }
+            if (parent && !event.isPropagationStopped()) {
+                triggerEvent(parent, event);
+            }
+            else if (!parent && !event.isDefaultPrevented()) {
+                var targetData = getData(event.target);
+                if (event.target[event.type] != null && typeof event.target[event.type] === 'function') {
+                    targetData.disabled = true;
+                    event.target[event.type]();
+                    targetData.disabled = false;
+
+                }
+            }
+        };
+        setTimeout(function () {
+            self.triggerEvent(anotherDiv, 'mouseover')
+        }, 2000);
+
+        //set the picture and button
+        var btn = document.createElement('input');
+        btn.type = 'button';
+        btn.value = 'Start!';
+        document.body.appendChild(btn);
+        var img = document.createElement('img');
+        img.className = 'loader';
+        img.src = 'chapter6/free-gif-preloaders-psds-03.gif';
+        img.style.display = 'none';
+        document.body.appendChild(img);
+
+
+        self.addEvent(document.body, 'ajax-start', function () {
+            var loader = document.getElementsByClassName('loader')[0];
+            loader.style.display = 'block';
+        });
+        self.addEvent(document.body, 'ajax-end', function () {
+            var loader = document.getElementsByClassName('loader')[0];
+            loader.style.display = 'none';
+        });
+        function simulateAjaxRequest(target) {
+            self.triggerEvent(target, 'ajax-start');
+            setTimeout(function () {
+                self.triggerEvent(target, 'ajax-end');
+            }, 4000);
+        }
+
+        self.addEvent(btn, 'click', function () {
+            simulateAjaxRequest(this);
+        })
 
 
     })('events');
