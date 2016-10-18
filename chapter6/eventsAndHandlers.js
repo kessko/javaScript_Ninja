@@ -11,12 +11,12 @@ window.onload = function () {
                 elem.removeEventListener(type, fn, false);
             };
         }
-        else if (document.attachElement) {
+        else if (document.attachEvent) {
             self.addEvent = function (elem, type, fn) {
                 var bound = function () {
                     return fn.apply(elem, arguments);
                 };
-                document.attachElement('on' + type, bound);
+                document.attachEvent('on' + type, bound);
                 return bound;
             };
             self.removeEvent = function (elem, type, fn) {
@@ -156,6 +156,43 @@ window.onload = function () {
 
         (function () {
             var nextGuid = 1;
+            var isEvetSupported = function (type) {
+                var div = document.createElement('div'),
+                    isSupported;
+                var eventType = 'on' + type;
+                isSupported = (eventType in div);
+                if (!isSupported) {
+                    div.setAttribute(eventType, 'return;');
+                    isSupported = typeof div[eventType] === 'function';
+                }
+                div = null;
+                return isSupported;
+            };
+            var isInForm = function (elem) {
+                var parent = elem.parentNode;
+                while (parent) {
+                    if (parent.nodeName.toLowerCase() === 'form') return true;
+                    parent = parent.parentNode;
+                }
+                return false;
+            };
+
+            function triggerSubmitOnClick(e) {
+                var target = e.target;
+                if (target.type === 'submit' || target.type === 'image' && isInForm(target)) {
+                    return triggerEvent(this, 'submit');
+                }
+            }
+
+            function triggerSubmitOnKeypress(e) {
+                var target = e.target;
+                if (target.type === 'text' || target.type === 'password'
+                    && isInForm(target) && e.keyCode === 13) {
+                    return triggerEvent(this, 'submit');
+                }
+            }
+
+            var isSubmitSupported = isEvetSupported('submit');
             self.addEvent = function (elem, type, fn) {
                 var data = self.getData(elem);
                 if (!data.handlers) data.handlers = {};
@@ -176,6 +213,10 @@ window.onload = function () {
                     };
                 }
                 if (data.handlers[type].length === 1) {
+                     if (type === "submit" && !isSubmitSupported && elem.nodeName.toLowerCase() !=='form') {
+                         addEvent(elem, 'click',triggerSubmitOnClick);
+                         addEvent(elem, 'keypress',triggerSubmitOnKeypress);
+                     }
                     if (document.addEventListener) {
                         elem.addEventListener(type, data.dispather, false);
                     }
@@ -183,44 +224,39 @@ window.onload = function () {
                         elem.attachEvent('on' + type, data.dispather);
                     }
                 }
+                return fn;
             };
-        })();
-
-        self.addEvent(div, 'click', function (event) {
-            if (this.style) {
-                this.style.backgroundColor = this.style.backgroundColor === 'green' ? '' : 'green';
-            }
-        });
-
-        function tidyUp(elem, type) {
-            function isEmpty(object) {
-                for (var p in object) {
-                    return false;
+            function tidyUp(elem, type) {
+                function isEmpty(object) {
+                    for (var p in object) {
+                        return false;
+                    }
+                    return true;
                 }
-                return true;
-            }
 
-            var data = self.getData(elem);
-            if (data.handlers[type].length === 0) {
-                delete data.handlers[type];
-                if (document.removeEventListener) {
-                    elem.removeEventListener(type, data.dispather, false);
+                var data = self.getData(elem);
+                if(type === 'submit' && !isSubmitSupported && elem.nodeName.toLowerCase() !== 'form' && data.handlers[type].length === 0){
+                    removeEvent(elem, 'click',triggerSubmitOnClick);
+                    removeEvent(elem, 'keypress', triggerSubmitOnKeypress);
                 }
-                else if (document.detachEvent) {
-                    elem.detachEvent('on' + type, data.dispather);
+                if (data.handlers[type].length === 0) {
+                    delete data.handlers[type];
+                    if (document.removeEventListener) {
+                        elem.removeEventListener(type, data.dispather, false);
+                    }
+                    else if (document.detachEvent) {
+                        elem.detachEvent('on' + type, data.dispather);
+                    }
                 }
-            }
-            if (isEmpty(data.handlers)) {
-                delete data.handlers;
-                delete data.dispather;
-            }
-            if (isEmpty(data)) {
-                self.removeData(elem);
-            }
+                if (isEmpty(data.handlers)) {
+                    delete data.handlers;
+                    delete data.dispather;
+                }
+                if (isEmpty(data)) {
+                    self.removeData(elem);
+                }
 
-        }
-
-        (function () {
+            }
             self.removeEvent = function (elem, type, fn) {
                 function isEmpty(object) {
                     for (var p in object) {
@@ -257,8 +293,16 @@ window.onload = function () {
                 tidyUp(elem, type);
             }
         })();
+
+        self.addEvent(div, 'click', function (event) {
+            if (this.style) {
+                this.style.backgroundColor = this.style.backgroundColor === 'green' ? '' : 'green';
+            }
+        });
+
         var counter = 0;
-        self.addEvent(anotherDiv, 'mouseover', function moFn(event) {
+        //fix for IE 8
+     var moFn =    self.addEvent(anotherDiv, 'mouseover', function (event) {
             event.target.innerText = (event.target.innerText + '  ' + counter++);
             if (counter > 9) {
                 self.removeEvent(this, 'mouseover', moFn);
@@ -326,7 +370,17 @@ window.onload = function () {
 
         self.addEvent(btn, 'click', function () {
             simulateAjaxRequest(this);
+        });
+
+        var input = document.getElementById('testSubmit');
+      var testSubmitFn=  self.addEvent(input,'submit', function (e) {
+            self.removeEvent(input, 'submit',testSubmitFn);
+            console.log('work?');
+            setTimeout(function () {
+                self.removeEvent(input, 'submit',testSubmitFn);
+            }, 1500);
         })
+
 
 
     })('events');
